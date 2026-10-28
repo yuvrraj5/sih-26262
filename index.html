@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AICTE SAMPARK — Smart Approval Monitoring & Regulatory Compliance Kit</title>
+  <meta name="description" content="AICTE SAMPARK is a smart approval monitoring, processing, alerts and regulatory compliance kit for technical education institutions." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============================================================
+     TOAST CONTAINER
+     ============================================================ -->
+<div id="toast-container"></div>
+
+<!-- ============================================================
+     CONFIRMATION MODAL
+     ============================================================ -->
+<div id="confirm-overlay" class="modal-overlay hidden">
+  <div class="modal confirm-modal">
+    <div class="confirm-body">
+      <div class="confirm-icon" id="confirm-icon">⚠️</div>
+      <h3 id="confirm-title">Confirm Action</h3>
+      <p id="confirm-msg">Are you sure you want to proceed?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="confirm-cancel">Cancel</button>
+      <button class="btn btn-primary" id="confirm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     REMARK MODAL
+     ============================================================ -->
+<div id="remark-overlay" class="modal-overlay hidden">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <h3 id="remark-title">Add Remarks</h3>
+      <button class="modal-close" onclick="closeModal('remark-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Remarks <span class="req">*</span></label>
+        <textarea id="remark-text" class="form-textarea" rows="4" placeholder="Enter your remarks or observations..."></textarea>
+      </div>
+      <div id="remark-hint" class="form-hint"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('remark-overlay')">Cancel</button>
+      <button class="btn btn-primary" id="remark-submit">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     VIEW APPLICATION MODAL
+     ============================================================ -->
+<div id="view-app-overlay" class="modal-overlay hidden">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <h3>Application Details</h3>
+      <button class="modal-close" onclick="closeModal('view-app-overlay')">✕</button>
+    </div>
+    <div class="modal-body" id="view-app-body">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('view-app-overlay')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ROLE SELECTION SCREEN
+     ============================================================ -->
+<div id="role-screen">
+  <div class="role-header">
+    <div class="logo-badge">
+      <div class="logo-emblem">S</div>
+      <div class="logo-text-block">
+        <div class="logo-title">AICTE SAMPARK</div>
+        <div class="logo-sub">Smart Approval Monitoring, Processing, Alerts &amp; Regulatory Compliance Kit</div>
+      </div>
+    </div>
+    <h1>Select Your Role</h1>
+    <p>Choose a role to access the corresponding dashboard. This is a demonstration prototype.</p>
+    <span class="demo-badge">🔒 DEMO MODE — No real authentication required</span>
+  </div>
+
+  <div class="role-grid">
+    <div class="role-card" onclick="selectRole('applicant')">
+      <div class="role-icon">🏛️</div>
+      <h3>Institution Applicant</h3>
+      <p>Submit and track approval applications, upload compliance documents, and manage undertakings for your institution.</p>
+      <button class="btn btn-primary btn-lg w-full">Continue →</button>
+    </div>
+
+    <div class="role-card" onclick="selectRole('regional')">
+      <div class="role-icon">📋</div>
+      <h3>Regional Officer</h3>
+      <p>Review and process incoming applications, verify documents, and forward applications to the bureau level.</p>
+      <button class="btn btn-primary btn-lg w-full">Continue →</button>
+    </div>
+
+    <div class="role-card" onclick="selectRole('bureau')">
+      <div class="role-icon">🔍</div>
+      <h3>Bureau Officer</h3>
+      <p>Conduct in-depth application review, schedule EVC visits, manage compliance monitoring, and generate reports.</p>
+      <button class="btn btn-primary btn-lg w-full">Continue →</button>
+    </div>
+
+    <div class="role-card" onclick="selectRole('evc')">
+      <div class="role-icon">👥</div>
+      <h3>EVC / Committee Member</h3>
+      <p>View scheduled site visits, submit inspection reports, record observations, and update visit statuses.</p>
+      <button class="btn btn-primary btn-lg w-full">Continue →</button>
+    </div>
+
+    <div class="role-card" onclick="selectRole('admin')">
+      <div class="role-icon">⚙️</div>
+      <h3>AICTE Administrator</h3>
+      <p>Full system oversight — manage users, view all dashboards, generate audit reports, and configure system settings.</p>
+      <button class="btn btn-primary btn-lg w-full">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP SHELL (shown after role selection)
+     ============================================================ -->
+<div id="app-shell" class="hidden">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="s-emblem">S</div>
+      <div>
+        <div class="s-title">SAMPARK</div>
+        <div class="s-sub">AICTE Portal</div>
+      </div>
+    </div>
+
+    <div class="role-pill">
+      <strong id="sidebar-role-name">—</strong>
+      <span id="sidebar-role-label">Role</span>
+    </div>
+
+    <nav id="sidebar-nav"></nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-switch-role" onclick="switchRole()">⇄ Switch Role</button>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <!-- TOP HEADER -->
+    <div class="top-header">
+      <button class="btn-sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="page-title-area">
+        <h2 id="header-page-title">Dashboard</h2>
+        <p id="header-page-sub">AICTE SAMPARK</p>
+      </div>
+      <div class="header-actions">
+        <button class="notif-btn" onclick="navigate('notifications')" title="Notifications">
+          🔔
+          <span class="notif-badge" id="notif-count">0</span>
+        </button>
+        <div class="avatar" id="user-avatar" title="User">A</div>
+      </div>
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content" id="page-content">
+
+      <!-- ══════════════════════════════════════
+           APPLICANT PAGES
+           ══════════════════════════════════════ -->
+
+      <!-- A: Dashboard -->
+      <div id="page-applicant-dashboard" class="page-view">
+        <div class="section-header">
+          <div>
+            <h3>My Dashboard</h3>
+            <p class="section-sub">Overview of your institution's application portfolio</p>
+          </div>
+          <button class="btn btn-primary" onclick="navigate('new-application')">＋ New Application</button>
+        </div>
+
+        <div class="stat-grid" id="app-stat-grid"></div>
+
+        <div class="card">
+          <div class="card-header">
+            <h4>Recent Applications</h4>
+            <button class="btn btn-secondary btn-sm" onclick="navigate('my-applications')">View All</button>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="recent-apps-table">
+              <thead>
+                <tr>
+                  <th>App ID</th><th>Type</th><th>Submitted</th><th>Stage</th><th>Status</th><th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="recent-apps-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h4>🔔 Pending Actions</h4></div>
+          <div class="card-body" id="pending-actions-list"></div>
+        </div>
+      </div>
+
+      <!-- A: My Applications -->
+      <div id="page-my-applications" class="page-view">
+        <div class="section-header">
+          <div><h3>My Applications</h3><p class="section-sub">All submitted applications</p></div>
+          <button class="btn btn-primary" onclick="navigate('new-application')">＋ New Application</button>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="filter-bar">
+              <div class="search-input-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="form-input" id="app-search" placeholder="Search by ID or type..." oninput="filterApplications()">
+              </div>
+              <select class="form-select" id="app-status-filter" onchange="filterApplications()" style="width:160px">
+                <option value="">All Statuses</option>
+                <option value="Submitted">Submitted</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Returned">Returned for Correction</option>
+                <option value="Approved">Approved</option>
+                <option value="Pending">Pending</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>App ID</th><th>Type</th><th>Submitted</th><th>Stage</th><th>Status</th><th>Pendency</th><th>Action</th></tr>
+              </thead>
+              <tbody id="my-apps-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- A: New Application -->
+      <div id="page-new-application" class="page-view">
+        <div class="section-header">
+          <div><h3>New Application</h3><p class="section-sub">Submit a new application to AICTE</p></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h4>Application Form</h4></div>
+          <div class="card-body">
+            <form id="new-app-form" onsubmit="submitNewApplication(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Application Type <span class="req">*</span></label>
+                  <select class="form-select" id="na-type" required>
+                    <option value="">— Select —</option>
+                    <option>New Institution Approval</option>
+                    <option>Extension of Approval</option>
+                    <option>Increase in Intake</option>
+                    <option>New Programme</option>
+                    <option>Change in Name</option>
+                    <option>Closure of Programme</option>
+                    <option>FDR Submission</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Institution Name <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="na-inst" required placeholder="Enter institution name" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">State <span class="req">*</span></label>
+                  <select class="form-select" id="na-state" required>
+                    <option value="">— Select State —</option>
+                    <option>Andhra Pradesh</option><option>Assam</option><option>Delhi</option>
+                    <option>Gujarat</option><option>Karnataka</option><option>Kerala</option>
+                    <option>Madhya Pradesh</option><option>Maharashtra</option><option>Punjab</option>
+                    <option>Rajasthan</option><option>Tamil Nadu</option><option>Telangana</option>
+                    <option>Uttar Pradesh</option><option>West Bengal</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Academic Year <span class="req">*</span></label>
+                  <select class="form-select" id="na-year" required>
+                    <option value="">— Select —</option>
+                    <option>2025-26</option><option>2026-27</option><option>2027-28</option>
+                  </select>
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">Programme(s) / Details</label>
+                  <input type="text" class="form-input" id="na-prog" placeholder="e.g. B.Tech CSE, MBA, MCA" />
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">Remarks</label>
+                  <textarea class="form-textarea" id="na-remarks" placeholder="Additional notes or information..."></textarea>
+                </div>
+              </div>
+              <div class="form-actions mt-2">
+                <button type="submit" class="btn btn-primary">📤 Submit Application</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('applicant-dashboard')">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- A: Upload Documents -->
+      <div id="page-upload-documents" class="page-view">
+        <div class="section-header">
+          <div><h3>Upload Documents</h3><p class="section-sub">Submit compliance documents and FDR/Lease deeds</p></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h4>Document Upload Form</h4></div>
+          <div class="card-body">
+            <form id="upload-doc-form" onsubmit="submitDocument(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Document Type <span class="req">*</span></label>
+                  <select class="form-select" id="doc-type" required onchange="toggleOcrSection()">
+                    <option value="">— Select —</option>
+                    <option>FDR (Fixed Deposit Receipt)</option>
+                    <option>Lease Deed</option>
+                    <option>Bank Guarantee</option>
+                    <option>Building Completion Certificate</option>
+                    <option>Affidavit</option>
+                    <option>Fire NOC</option>
+                    <option>Land Document</option>
+                    <option>Society Registration</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Institution Name <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="doc-inst" required placeholder="Institution name" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Document Number <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="doc-number" required placeholder="e.g. FDR/2024/001234" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Bank / Issuing Authority <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="doc-bank" required placeholder="e.g. State Bank of India" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Amount (₹)</label>
+                  <input type="number" class="form-input" id="doc-amount" placeholder="e.g. 5000000" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Issue Date <span class="req">*</span></label>
+                  <input type="date" class="form-input" id="doc-issue-date" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Expiry / Maturity Date</label>
+                  <input type="date" class="form-input" id="doc-expiry-date" onchange="checkExpiry()" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Remarks</label>
+                  <input type="text" class="form-input" id="doc-remarks" placeholder="Optional remarks" />
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">Upload File <span class="req">*</span></label>
+                  <div class="file-upload-area" onclick="document.getElementById('doc-file').click()">
+                    <input type="file" id="doc-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onchange="fileSelected(this)" />
+                    <div class="file-upload-icon">📎</div>
+                    <div class="file-upload-text">Click to <span>browse file</span> or drag &amp; drop</div>
+                    <div class="file-upload-text text-sm text-light">PDF, JPG, PNG, DOC up to 10 MB</div>
+                    <div class="file-selected-name hidden" id="selected-file-name"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Expiry Warning -->
+              <div id="expiry-warning" class="alert alert-warn hidden mt-2">
+                ⚠️ <strong>Expiry Warning:</strong> This document expires within 30 days. Please initiate renewal immediately.
+              </div>
+
+              <!-- OCR Simulation -->
+              <div id="ocr-section" class="mt-3 hidden">
+                <div class="ocr-box">
+                  <span class="ocr-tag">🔬 Demo OCR Simulation</span>
+                  <p style="font-size:11px;color:#92400e;margin-bottom:10px;">⚠️ This is a simulated OCR demonstration only. No actual document scanning or NeSL/bank verification is performed.</p>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="runDemoOCR()">▶ Run Demo OCR</button>
+                  <div id="ocr-results" class="hidden mt-2"></div>
+                </div>
+              </div>
+
+              <div class="form-actions mt-3">
+                <button type="button" class="btn btn-secondary" onclick="saveDraftDocument()">💾 Save Draft</button>
+                <button type="submit" class="btn btn-primary">✅ Submit for Verification</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('applicant-dashboard')">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Submitted Documents -->
+        <div class="card">
+          <div class="card-header"><h4>Uploaded Documents</h4></div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>Doc Type</th><th>Number</th><th>Institution</th><th>Issue Date</th><th>Expiry Date</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody id="docs-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- A: FDR & Lease Tracking -->
+      <div id="page-fdr-tracking" class="page-view">
+        <div class="section-header">
+          <div><h3>FDR &amp; Lease Tracking</h3><p class="section-sub">Monitor maturity dates and renewal requirements</p></div>
+          <button class="btn btn-primary" onclick="navigate('upload-documents')">＋ Upload FDR</button>
+        </div>
+
+        <div class="stat-grid" id="fdr-stat-grid"></div>
+
+        <div class="card">
+          <div class="card-header">
+            <h4>FDR / Lease Records</h4>
+            <div class="filter-bar">
+              <select class="form-select" id="fdr-status-filter" onchange="renderFdrTable()" style="width:160px">
+                <option value="">All</option>
+                <option value="Active">Active</option>
+                <option value="Expiring">Expiring Soon</option>
+                <option value="Expired">Expired</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>Type</th><th>Doc No.</th><th>Institution</th><th>Bank / Authority</th><th>Amount (₹)</th><th>Expiry Date</th><th>Status</th><th>Days Left</th></tr>
+              </thead>
+              <tbody id="fdr-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- A: Undertakings -->
+      <div id="page-undertakings" class="page-view">
+        <div class="section-header">
+          <div><h3>Undertakings &amp; Compliance</h3><p class="section-sub">Submit and track regulatory undertakings</p></div>
+          <button class="btn btn-primary" onclick="openSubmitUndertaking()">＋ Submit Undertaking</button>
+        </div>
+
+        <!-- Submit Undertaking Inline Form -->
+        <div class="card hidden" id="undertaking-form-card">
+          <div class="card-header">
+            <h4>New Undertaking</h4>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('undertaking-form-card').classList.add('hidden')">✕ Close</button>
+          </div>
+          <div class="card-body">
+            <form id="undertaking-form" onsubmit="submitUndertaking(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Undertaking Type <span class="req">*</span></label>
+                  <select class="form-select" id="ut-type" required>
+                    <option value="">— Select —</option>
+                    <option>Anti-Ragging Undertaking</option>
+                    <option>Tuition Fee Compliance</option>
+                    <option>Faculty Qualification Compliance</option>
+                    <option>Infrastructure Compliance</option>
+                    <option>Academic Calendar Compliance</option>
+                    <option>Grievance Redressal</option>
+                    <option>Website Disclosure</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Institution Name <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="ut-inst" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Due Date <span class="req">*</span></label>
+                  <input type="date" class="form-input" id="ut-due" required />
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">Declaration</label>
+                  <textarea class="form-textarea" id="ut-decl" placeholder="I hereby declare that..."></textarea>
+                </div>
+              </div>
+              <div class="form-actions mt-2">
+                <button type="submit" class="btn btn-primary">Submit Undertaking</button>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('undertaking-form-card').classList.add('hidden')">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h4>Undertakings List</h4></div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>Institution</th><th>Undertaking Type</th><th>Due Date</th><th>Submitted</th><th>Compliance</th><th>Action</th></tr>
+              </thead>
+              <tbody id="undertakings-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- A: Notifications -->
+      <div id="page-notifications" class="page-view">
+        <div class="section-header">
+          <div><h3>Notifications</h3><p class="section-sub">Application updates, alerts, and reminders</p></div>
+          <button class="btn btn-secondary btn-sm" onclick="markAllRead()">✓ Mark All Read</button>
+        </div>
+        <div class="card">
+          <div id="notifications-list"></div>
+        </div>
+      </div>
+
+      <!-- A: Settings -->
+      <div id="page-settings" class="page-view">
+        <div class="section-header"><div><h3>Settings</h3><p class="section-sub">Account preferences</p></div></div>
+        <div class="card">
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Institution Name</label>
+                <input type="text" class="form-input" id="set-inst-name" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Contact Email</label>
+                <input type="email" class="form-input" id="set-email" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Contact Phone</label>
+                <input type="tel" class="form-input" id="set-phone" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">State</label>
+                <input type="text" class="form-input" id="set-state" />
+              </div>
+            </div>
+            <div class="form-actions mt-2">
+              <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+            </div>
+            <div class="alert alert-info mt-2" style="margin-top:16px">
+              ℹ️ This is a demonstration prototype. Settings are stored locally in your browser only.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════
+           OFFICER PAGES (Regional / Bureau / Admin)
+           ══════════════════════════════════════ -->
+
+      <!-- O: Overview -->
+      <div id="page-officer-overview" class="page-view">
+        <div class="section-header">
+          <div><h3>Officer Overview</h3><p class="section-sub">System-wide summary of applications and compliance</p></div>
+        </div>
+        <div class="stat-grid" id="officer-stat-grid"></div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" id="officer-overview-cols">
+          <div class="card">
+            <div class="card-header"><h4>Applications by Stage</h4></div>
+            <div class="card-body">
+              <div class="chart-bar-group" id="stage-chart"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h4>Applications by Status</h4></div>
+            <div class="card-body">
+              <div class="chart-bar-group" id="status-chart"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h4>⏰ Overdue Applications (&gt;30 days pending)</h4></div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>Institution</th><th>App ID</th><th>Type</th><th>Stage</th><th>Pendency</th><th>Action</th></tr>
+              </thead>
+              <tbody id="overdue-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- O: Application Queue -->
+      <div id="page-app-queue" class="page-view">
+        <div class="section-header">
+          <div><h3>Application Queue</h3><p class="section-sub">Applications awaiting review at your stage</p></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="filter-bar">
+              <div class="search-input-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="form-input" id="queue-search" placeholder="Search by ID, institution..." oninput="filterQueue()">
+              </div>
+              <select class="form-select" id="queue-type-filter" onchange="filterQueue()" style="width:180px">
+                <option value="">All Types</option>
+                <option>New Institution Approval</option>
+                <option>Extension of Approval</option>
+                <option>Increase in Intake</option>
+                <option>New Programme</option>
+              </select>
+              <select class="form-select" id="queue-stage-filter" onchange="filterQueue()" style="width:160px">
+                <option value="">All Stages</option>
+                <option>Regional Office</option>
+                <option>Bureau Office</option>
+                <option>EVC Scheduled</option>
+                <option>Final Review</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>Institution</th><th>App ID</th><th>Type</th><th>Submitted</th><th>Stage</th><th>Pendency</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="queue-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- O: Document Verification -->
+      <div id="page-doc-verification" class="page-view">
+        <div class="section-header">
+          <div><h3>Document Verification</h3><p class="section-sub">Review and verify submitted documents</p></div>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>Doc Type</th><th>Doc Number</th><th>Institution</th><th>Bank / Authority</th><th>Amount</th><th>Expiry</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="doc-verify-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- O: EVC Scheduling -->
+      <div id="page-evc-scheduling" class="page-view">
+        <div class="section-header">
+          <div><h3>EVC Scheduling</h3><p class="section-sub">Schedule Expert Visiting Committee site visits</p></div>
+          <button class="btn btn-primary" onclick="openEvcForm()">＋ Schedule EVC</button>
+        </div>
+
+        <div class="card hidden" id="evc-form-card">
+          <div class="card-header">
+            <h4>Schedule EVC Visit</h4>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('evc-form-card').classList.add('hidden')">✕</button>
+          </div>
+          <div class="card-body">
+            <form id="evc-form" onsubmit="submitEvcSchedule(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Institution Name <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="evc-inst" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Application ID <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="evc-appid" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Visit Date <span class="req">*</span></label>
+                  <input type="date" class="form-input" id="evc-date" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Visit Time <span class="req">*</span></label>
+                  <input type="time" class="form-input" id="evc-time" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Committee Members</label>
+                  <input type="text" class="form-input" id="evc-members" placeholder="e.g. Dr. A. Sharma, Dr. B. Verma" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Meeting Mode</label>
+                  <select class="form-select" id="evc-mode">
+                    <option>Physical Visit</option>
+                    <option>Virtual (Video Conference)</option>
+                    <option>Hybrid</option>
+                  </select>
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">Remarks</label>
+                  <textarea class="form-textarea" id="evc-remarks" placeholder="Special instructions..."></textarea>
+                </div>
+              </div>
+              <div class="form-actions mt-2">
+                <button type="submit" class="btn btn-primary">Schedule Visit</button>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('evc-form-card').classList.add('hidden')">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h4>Scheduled EVC Visits</h4></div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>Institution</th><th>App ID</th><th>Date</th><th>Time</th><th>Members</th><th>Mode</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody id="evc-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- O: Compliance Monitoring -->
+      <div id="page-compliance" class="page-view">
+        <div class="section-header">
+          <div><h3>Compliance Monitoring</h3><p class="section-sub">Track regulatory compliance across institutions</p></div>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>Institution</th><th>Undertaking Type</th><th>Due Date</th><th>Submitted</th><th>Compliance</th><th>Action</th></tr>
+              </thead>
+              <tbody id="compliance-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- O: Expiry Alerts -->
+      <div id="page-expiry-alerts" class="page-view">
+        <div class="section-header">
+          <div><h3>Expiry Alerts</h3><p class="section-sub">FDR, Lease, and document expiry monitoring</p></div>
+        </div>
+        <div class="stat-grid" id="expiry-stat-grid"></div>
+        <div class="card">
+          <div class="card-header"><h4>Documents by Expiry Status</h4></div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>Doc Type</th><th>Doc Number</th><th>Institution</th><th>Bank</th><th>Amount</th><th>Expiry Date</th><th>Days Left</th><th>Status</th></tr>
+              </thead>
+              <tbody id="expiry-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- O: Reports -->
+      <div id="page-reports" class="page-view">
+        <div class="section-header">
+          <div><h3>Reports &amp; Analytics</h3><p class="section-sub">Summary statistics and performance metrics</p></div>
+        </div>
+
+        <div class="stat-grid" id="report-stat-grid"></div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="card">
+            <div class="card-header"><h4>Application Types Distribution</h4></div>
+            <div class="card-body">
+              <div class="chart-bar-group" id="report-type-chart"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h4>State-wise Applications</h4></div>
+            <div class="card-body">
+              <div class="chart-bar-group" id="report-state-chart"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h4>Processing Performance</h4></div>
+          <div class="card-body">
+            <div id="perf-bars"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- O: Audit Logs -->
+      <div id="page-audit-logs" class="page-view">
+        <div class="section-header">
+          <div><h3>Audit Logs</h3><p class="section-sub">Complete trail of system actions</p></div>
+          <div class="filter-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="form-input" id="audit-search" placeholder="Search logs..." oninput="filterAuditLogs()" style="min-width:200px">
+            </div>
+            <select class="form-select" id="audit-role-filter" onchange="filterAuditLogs()" style="width:160px">
+              <option value="">All Roles</option>
+              <option>Applicant</option>
+              <option>Regional Officer</option>
+              <option>Bureau Officer</option>
+              <option>EVC Member</option>
+              <option>Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>Timestamp</th><th>Role</th><th>Action</th><th>Related To</th><th>Remarks</th></tr>
+              </thead>
+              <tbody id="audit-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════
+           EVC MEMBER PAGES
+           ══════════════════════════════════════ -->
+      <div id="page-evc-overview" class="page-view">
+        <div class="section-header">
+          <div><h3>EVC Dashboard</h3><p class="section-sub">Your assigned visit schedule and pending reports</p></div>
+        </div>
+        <div class="stat-grid" id="evc-stat-grid"></div>
+        <div class="card">
+          <div class="card-header"><h4>Assigned Visits</h4></div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr><th>Institution</th><th>App ID</th><th>Date</th><th>Time</th><th>Mode</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody id="evc-assigned-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-evc-report" class="page-view">
+        <div class="section-header"><div><h3>Submit Inspection Report</h3><p class="section-sub">Record observations and findings from the site visit</p></div></div>
+        <div class="card">
+          <div class="card-body">
+            <form id="evc-report-form" onsubmit="submitEvcReport(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Visit ID / Application ID <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="rpt-appid" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Institution Name <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="rpt-inst" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Visit Date</label>
+                  <input type="date" class="form-input" id="rpt-date" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Infrastructure Rating</label>
+                  <select class="form-select" id="rpt-infra">
+                    <option>Excellent</option><option>Good</option><option>Satisfactory</option><option>Deficient</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Faculty Status</label>
+                  <select class="form-select" id="rpt-faculty">
+                    <option>Adequate</option><option>Partially Adequate</option><option>Inadequate</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Overall Recommendation</label>
+                  <select class="form-select" id="rpt-rec">
+                    <option>Recommend Approval</option><option>Conditional Approval</option><option>Defer</option><option>Reject</option>
+                  </select>
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">Observations <span class="req">*</span></label>
+                  <textarea class="form-textarea" id="rpt-obs" required rows="5" placeholder="Detailed observations..."></textarea>
+                </div>
+              </div>
+              <div class="form-actions mt-2">
+                <button type="submit" class="btn btn-primary">Submit Report</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('evc-overview')">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-area -->
+</div><!-- /app-shell -->
+
+<script src="script.js"></script>
+</body>
+</html>
